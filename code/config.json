@@ -1,0 +1,18 @@
+{   
+    "data_path": "data/data_mini_merge",
+
+    "label": {
+        "Down": 1, 
+        "Go": 2, 
+        "Left": 3, 
+        "No": 4, 
+        "Off": 5, 
+        "On": 6, 
+        "Right": 7, 
+        "Silence": 8, 
+        "Stop": 9, 
+        "Unknown": 10, 
+        "Up": 11, 
+        "Yes": 12
+    }
+}
