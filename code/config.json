@@ -1,18 +1,30 @@
 {   
     "data_path": "data/data_mini_merge",
 
+    "num_classes": 12,
+
     "label": {
-        "Down": 1, 
-        "Go": 2, 
-        "Left": 3, 
-        "No": 4, 
-        "Off": 5, 
-        "On": 6, 
-        "Right": 7, 
-        "Silence": 8, 
-        "Stop": 9, 
-        "Unknown": 10, 
-        "Up": 11, 
-        "Yes": 12
+        "Down": 0, 
+        "Go": 1, 
+        "Left": 2, 
+        "No": 3, 
+        "Off": 4, 
+        "On": 5, 
+        "Right": 6, 
+        "Silence": 7, 
+        "Stop": 8, 
+        "Unknown": 9, 
+        "Up": 10, 
+        "Yes": 11
+    },
+
+    "batchsize": 16,
+
+    
+    "lstm_para":{
+        "input_size": 13,  
+        "hidden_layer_size": 200,  
+        "output_size": 12,  
+        "num_layers": 2  
     }
 }
