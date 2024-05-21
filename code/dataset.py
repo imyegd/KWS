@@ -13,6 +13,7 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from wave import open as wave_open
 import pandas as pd
+import random
 
 def get_labels(audio_paths):
     labels = []
@@ -47,9 +48,11 @@ def get_path(mode):
     #             # 打印文件的完整路径
     #             path = os.path.join(root, filename)
     #             path = path.split('data_mini_merge\\')[-1]
-    #             train_path.append(path)
+    #             if path not in val_path and path not in test_path:
+    #                 train_path.append(path)
     # with open('data/training_list.txt', 'w', encoding='utf-8') as f:
     #     f.write('\n'.join(train_path))
+    
     if mode == 'test':
         return test_path
     elif mode == 'val':
@@ -76,13 +79,26 @@ def standardize_length(wav_data, desired_length):
     else:  # 当前长度大于期望长度时进行截断
         return wav_data[:desired_length]
 
+def get_noise():
+    with open("data\\noise_list.txt", 'r') as noise_file:
+        noise_list = noise_file.readlines()
+        wav_file_name = random.choice(noise_list).strip()
+    with wave.open(os.path.join('data/_noise', wav_file_name), 'rb') as wav_file:
+        # 读取音频数据
+        noise_data = np.frombuffer(wav_file.readframes(wav_file.getnframes()), dtype=np.int16)
+    return noise_data
+
 # 读取WAV文件并处理
-def process_wav_files(wav_file_name, desired_length):
+def process_wav_files(wav_file_name, desired_length, has_noise=False):
 
     # 打开WAV文件
     with wave.open(wav_file_name, 'rb') as wav_file:
         # 读取音频数据
         wav_data = np.frombuffer(wav_file.readframes(wav_file.getnframes()), dtype=np.int16)
+
+        if has_noise:
+            noise = get_noise()
+            wav_data = wav_data + noise
         
         # 归一化音频数据
         wav_data_normalized = normalize(wav_data)
@@ -119,26 +135,27 @@ def process_wav_files(wav_file_name, desired_length):
         return mfccs
 
 
-def getloader(mode):
+def getloader(mode, has_noise):
     with open('config.json', 'r') as config_file:
         config = json.load(config_file)
 
 
     path = get_path(mode)
     label = get_labels(path)
-    dataset = WavDataset(path, label, config)
+    dataset = WavDataset(path, label, config, noise=has_noise)
     loader = DataLoader(dataset, batch_size=config["batchsize"], shuffle=True)
     return loader
 
 
 class WavDataset(Dataset):
-    def __init__(self, audio_paths, labels, config, transform=None, desired_length=16000):
+    def __init__(self, audio_paths, labels, config, noise=False, transform=None, desired_length=16000):
         self.config = config
         self.audio_paths = audio_paths
         self.labels = pd.get_dummies(labels, dummy_na=False).reindex(columns=self.config["label"].values(), fill_value=False)
         self.labels = torch.tensor(np.array(self.labels.astype(int)))
         self.transform = transform
         self.desired_length = desired_length
+        self.has_noise = noise
         
 
     def __len__(self):
@@ -147,7 +164,7 @@ class WavDataset(Dataset):
     def __getitem__(self, idx):
         # 加载WAV文件
         file_path = os.path.join(self.config["data_path"], self.audio_paths[idx])
-        wav_data = process_wav_files(file_path, self.desired_length)
+        wav_data = process_wav_files(file_path, self.desired_length, self.has_noise)
         wav_data = wav_data.astype(np.float32)
         # 应用transform
         if self.transform:
@@ -166,22 +183,27 @@ class WavDataset(Dataset):
 
 
 if __name__=="__main__":
-    # 假设你已经有了WAV文件路径列表和对应的标签列表
-    with open('config.json', 'r') as config_file:
-        config = json.load(config_file)
-    path = get_path('train')
-    label = get_labels(path)
+    # # 假设你已经有了WAV文件路径列表和对应的标签列表
+    # with open('config.json', 'r') as config_file:
+    #     config = json.load(config_file)
+    # path = get_path('train')
+    # label = get_labels(path)
 
-    # 创建数据集实例
-    dataset = WavDataset(path, label, config)
+    # # 创建数据集实例
+    # dataset = WavDataset(path, label, config)
 
-    dataloader = DataLoader(dataset, batch_size=16)
+    # dataloader = DataLoader(dataset, batch_size=16)
 
-    i = 0
+    # i = 0
+    # for batch in dataloader:
+    #     print(123 * 16)
+    #     i += 1
+    #     print(batch[0].size())
+    # get_path("train")
+    dataloader = getloader('train', has_noise=True)
     for batch in dataloader:
-        print(123 * 16)
-        i += 1
         print(batch[0].size())
+        break
 
     # process_wav_files('data\data_mini_merge\Silence\self_audio.wav_0.wav', 16000)
     

@@ -26,5 +26,28 @@
         "hidden_layer_size": 200,  
         "output_size": 12,  
         "num_layers": 2  
+    }, 
+
+    "cnn_para": {
+        "input_dim": 1,
+        "hidden_dim": 32,
+        "output_size": 12
+    },
+
+    "cnnlstm":{
+        "input_dim": 1, 
+        "hidden_dim": 16, 
+        "output_dim": 12,
+        "lstm_last_dim": 6,
+        "hidden_layer_size":200, 
+        "num_layers":2
+
+    },
+
+    "transformer":{
+        "input_dim" : 13,
+        "num_heads" : 1,    
+        "num_encoder_layers" : 12,  
+        "num_classes" : 12
     }
 }
